@@ -20,9 +20,9 @@ router.post('/forgot-password', passwordResetLimiter, validate(schemas.forgotPas
 router.post('/reset-password/:token', validate(schemas.resetPassword), authController.resetPassword.bind(authController));
 
 // Protected routes
-router.get('/profile', authenticate, authController.getProfile.bind(authController));
+router.get('/profile', authenticate, authController.getProfile.bind(authController) as any);
 
-router.patch('/profile', authenticate, validate(schemas.updateProfile), authController.updateProfile.bind(authController));
+router.patch('/profile', authenticate, validate(schemas.updateProfile), authController.updateProfile.bind(authController) as any);
 
 // TODO: OAuth routes
 // router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

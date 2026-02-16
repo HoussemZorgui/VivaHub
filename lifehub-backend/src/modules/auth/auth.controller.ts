@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request, Response } from 'express';
+import jwt, { Secret } from 'jsonwebtoken';
 import { User, IUser } from './user.model.js';
 import { config } from '../../config/index.js';
 import logger from '../../config/logger.js';
@@ -225,7 +225,7 @@ export class AuthController {
     }
 
     // Get current user profile
-    async getProfile(req: AuthRequest, res: Response): Promise<void> {
+    async getProfile(req: Request, res: Response): Promise<void> {
         try {
             const user = await User.findById(req.userId);
 
@@ -252,7 +252,7 @@ export class AuthController {
     }
 
     // Update profile
-    async updateProfile(req: AuthRequest, res: Response): Promise<void> {
+    async updateProfile(req: Request, res: Response): Promise<void> {
         try {
             const updates = req.body;
             const allowedUpdates = [
@@ -381,15 +381,15 @@ export class AuthController {
 
     // Helper: Generate JWT token
     private generateToken(userId: string): string {
-        return jwt.sign({ userId }, config.jwt.secret, {
-            expiresIn: config.jwt.expiresIn,
+        return jwt.sign({ userId }, config.jwt.secret as Secret, {
+            expiresIn: config.jwt.expiresIn as any,
         });
     }
 
     // Helper: Generate refresh token
     private generateRefreshToken(userId: string): string {
-        return jwt.sign({ userId }, config.jwt.refreshSecret, {
-            expiresIn: config.jwt.refreshExpiresIn,
+        return jwt.sign({ userId }, config.jwt.refreshSecret as Secret, {
+            expiresIn: config.jwt.refreshExpiresIn as any,
         });
     }
 }

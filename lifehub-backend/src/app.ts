@@ -163,7 +163,7 @@ export class App {
 ║                                                           ║
 ║   Environment: ${config.env.padEnd(42)}║
 ║   Port:        ${String(config.port).padEnd(42)}║
-║   URL:         ${config.urls.backend.padEnd(42)}║
+║   URL:         ${`http://localhost:${config.port}`.padEnd(42)}║
 ║                                                           ║
 ║   Databases:                                              ║
 ║   - MongoDB:    ${(mongoDatabase.isConnectionReady() ? '✅ Connected' : '❌ Disconnected').padEnd(40)}║

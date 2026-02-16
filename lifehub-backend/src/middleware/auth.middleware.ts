@@ -1,7 +1,6 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
-import { AuthRequest } from '../modules/auth/auth.controller.js';
 import { User } from '../modules/auth/user.model.js';
 import logger from '../config/logger.js';
 
@@ -12,7 +11,7 @@ export interface JwtPayload {
 }
 
 export const authenticate = async (
-    req: AuthRequest,
+    req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> => {
@@ -92,8 +91,8 @@ export const authenticate = async (
 };
 
 export const optionalAuthenticate = async (
-    req: AuthRequest,
-    res: Response,
+    req: Request,
+    _res: Response,
     next: NextFunction
 ): Promise<void> => {
     try {
@@ -126,7 +125,7 @@ export const optionalAuthenticate = async (
 };
 
 export const requireEmailVerified = async (
-    req: AuthRequest,
+    req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> => {
@@ -142,7 +141,7 @@ export const requireEmailVerified = async (
 };
 
 export const requireMFA = async (
-    req: AuthRequest,
+    req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> => {
