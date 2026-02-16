@@ -1,8 +1,10 @@
+import { Platform } from 'react-native';
+
 export const config = {
     // API endpoints
     api: {
         baseURL: __DEV__
-            ? 'http://localhost:5001/api'
+            ? Platform.OS === 'android' ? 'http://10.0.2.2:5001/api' : 'http://localhost:5001/api'
             : 'https://api.lifehub.app/api',
         graphqlURL: __DEV__
             ? 'http://localhost:5001/graphql'

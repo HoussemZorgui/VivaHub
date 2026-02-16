@@ -9,280 +9,236 @@ import {
     KeyboardAvoidingView,
     Platform,
     ActivityIndicator,
-    Alert,
+    Image,
+    Dimensions,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { theme } from '../../theme';
 import { authService } from '../../services/auth.service';
 import { useAuthStore } from '../../store/authStore';
+import { useToastStore } from '../../store/toastStore';
 
-interface LoginScreenProps {
-    navigation: any;
-}
+const { width, height } = Dimensions.get('window');
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
+export const LoginScreen = () => {
+    const navigation = useNavigation<any>();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-
     const { login } = useAuthStore();
+    const showToast = useToastStore(state => state.showToast);
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert('Error', 'Please fill in all fields');
+            showToast('Veuillez remplir tous les champs.', 'warning');
             return;
         }
-
         try {
             setLoading(true);
             const response = await authService.login({ email, password });
-
             if (response.success) {
-                await login(
-                    response.data.user,
-                    response.data.token,
-                    response.data.refreshToken
-                );
+                showToast('Bienvenue sur VivaHub !', 'success');
+                await login(response.data.user, response.data.token, response.data.refreshToken);
             }
         } catch (error: any) {
-            Alert.alert('Login Failed', error.message || 'An error occurred');
+            showToast(error.message || 'Identifiants incorrects.', 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
+        <View style={styles.container}>
             <StatusBar style="light" />
-            <LinearGradient
-                colors={theme.colors.gradients.primary}
-                style={styles.gradient}
-            >
-                <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={false}
-                >
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <Text style={styles.logo}>LifeHub</Text>
-                        <Text style={styles.tagline}>Your Life, Organized</Text>
-                    </View>
 
-                    {/* Form */}
-                    <View style={styles.formContainer}>
-                        <Text style={styles.title}>Welcome Back!</Text>
-                        <Text style={styles.subtitle}>Login to continue</Text>
+            {/* Dark Premium Background */}
+            <View style={styles.background}>
+                <LinearGradient
+                    colors={['#050505', '#1a1a2e', '#050505']}
+                    style={StyleSheet.absoluteFill}
+                />
+                {/* Decorative 3D Spheres (Abstract) */}
+                <View style={[styles.sphere, { top: -50, right: -50, backgroundColor: theme.colors.primary[600] }]} />
+                <View style={[styles.sphere, { bottom: 100, left: -100, width: 300, height: 300, backgroundColor: theme.colors.accent.cyan, opacity: 0.15 }]} />
+            </View>
+
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={StyleSheet.absoluteFill}
+            >
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+                    <Animated.View entering={FadeInUp.delay(200).duration(1000)} style={styles.header}>
+                        <Image
+                            source={require('../../../assets/images/logo.png')}
+                            style={styles.logoImage}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.tagline}>L'expérience ultime de gestion de vie</Text>
+                    </Animated.View>
+
+                    <Animated.View entering={FadeInDown.delay(400).duration(1000)} style={styles.glassCard}>
+                        <Text style={styles.title}>Connexion</Text>
+                        <Text style={styles.subtitle}>Simplifiez votre quotidien avec VivaHub</Text>
 
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Email</Text>
+                            <Ionicons name="mail-outline" size={20} color={theme.colors.text.secondary} style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Enter your email"
-                                placeholderTextColor={theme.colors.gray[400]}
+                                placeholder="Email"
+                                placeholderTextColor={theme.colors.text.muted}
                                 value={email}
                                 onChangeText={setEmail}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
-                                autoCorrect={false}
                             />
                         </View>
 
                         <View style={styles.inputContainer}>
-                            <Text style={styles.label}>Password</Text>
+                            <Ionicons name="lock-closed-outline" size={20} color={theme.colors.text.secondary} style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Enter your password"
-                                placeholderTextColor={theme.colors.gray[400]}
+                                placeholder="Mot de passe"
+                                placeholderTextColor={theme.colors.text.muted}
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry
-                                autoCapitalize="none"
                             />
                         </View>
 
-                        <TouchableOpacity
-                            onPress={() => navigation.navigate('ForgotPassword')}
-                            style={styles.forgotButton}
-                        >
-                            <Text style={styles.forgotText}>Forgot Password?</Text>
+                        <TouchableOpacity style={styles.forgotBtn} onPress={() => { }}>
+                            <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={styles.loginButton}
+                            style={styles.loginBtn}
                             onPress={handleLogin}
                             disabled={loading}
                         >
-                            {loading ? (
-                                <ActivityIndicator color="#fff" />
-                            ) : (
-                                <Text style={styles.loginButtonText}>Login</Text>
-                            )}
+                            <LinearGradient
+                                colors={theme.colors.gradients.premium as any}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                                style={styles.btnGradient}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={styles.loginBtnText}>Se connecter</Text>
+                                )}
+                            </LinearGradient>
                         </TouchableOpacity>
 
-                        {/* Social Login */}
-                        <View style={styles.divider}>
-                            <View style={styles.dividerLine} />
-                            <Text style={styles.dividerText}>OR</Text>
-                            <View style={styles.dividerLine} />
-                        </View>
-
-                        <View style={styles.socialButtons}>
-                            <TouchableOpacity style={styles.socialButton}>
-                                <Text style={styles.socialButtonText}>Google</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.socialButton}>
-                                <Text style={styles.socialButtonText}>Facebook</Text>
-                            </TouchableOpacity>
-                        </View>
-
-                        {/* Register Link */}
-                        <View style={styles.registerContainer}>
-                            <Text style={styles.registerText}>Don't have an account? </Text>
+                        <View style={styles.footer}>
+                            <Text style={styles.footerText}>Nouveau sur VivaHub ? </Text>
                             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                                <Text style={styles.registerLink}>Sign Up</Text>
+                                <Text style={styles.footerLink}>Créer un compte</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
+                    </Animated.View>
+
                 </ScrollView>
-            </LinearGradient>
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    gradient: {
-        flex: 1,
+    container: { flex: 1, backgroundColor: '#000' },
+    background: { ...StyleSheet.absoluteFillObject, overflow: 'hidden' },
+    sphere: {
+        position: 'absolute',
+        width: 250,
+        height: 250,
+        borderRadius: 125,
+        opacity: 0.2,
+        filter: 'blur(60px)', // For platforms that support it, otherwise it's just a soft circle
     },
     scrollContent: {
-        flexGrow: 1,
-        padding: theme.spacing.lg,
+        paddingHorizontal: 25,
+        paddingBottom: 40,
+        paddingTop: 80,
     },
     header: {
         alignItems: 'center',
-        marginTop: theme.spacing.xxxl,
-        marginBottom: theme.spacing.xl,
+        marginBottom: 40,
     },
-    logo: {
-        fontSize: theme.typography.fontSize.huge,
-        fontWeight: theme.typography.fontWeight.bold,
-        color: '#fff',
-        marginBottom: theme.spacing.sm,
+    logoImage: {
+        width: 220,
+        height: 80,
+        marginBottom: 10,
     },
     tagline: {
-        fontSize: theme.typography.fontSize.md,
-        color: 'rgba(255, 255, 255, 0.8)',
+        color: theme.colors.text.secondary,
+        fontSize: 14,
+        fontWeight: '500',
+        letterSpacing: 0.5,
     },
-    formContainer: {
-        backgroundColor: '#fff',
-        borderRadius: theme.borderRadius.xxl,
-        padding: theme.spacing.xl,
-        ...theme.shadows.xl,
+    glassCard: {
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        borderRadius: 35,
+        padding: 30,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        ...theme.shadows.glass,
     },
     title: {
-        fontSize: theme.typography.fontSize.xxl,
-        fontWeight: theme.typography.fontWeight.bold,
-        color: theme.colors.text.primary,
-        marginBottom: theme.spacing.xs,
+        fontSize: 28,
+        fontWeight: '800',
+        color: '#fff',
+        marginBottom: 8,
     },
     subtitle: {
-        fontSize: theme.typography.fontSize.md,
+        fontSize: 15,
         color: theme.colors.text.secondary,
-        marginBottom: theme.spacing.xl,
+        marginBottom: 30,
     },
     inputContainer: {
-        marginBottom: theme.spacing.md,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
+        borderRadius: 18,
+        paddingHorizontal: 15,
+        height: 60,
+        marginBottom: 15,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.05)',
     },
-    label: {
-        fontSize: theme.typography.fontSize.sm,
-        fontWeight: theme.typography.fontWeight.semibold,
-        color: theme.colors.text.primary,
-        marginBottom: theme.spacing.xs,
-    },
+    inputIcon: { marginRight: 12 },
     input: {
-        backgroundColor: theme.colors.gray[100],
-        borderRadius: theme.borderRadius.lg,
-        padding: theme.spacing.md,
-        fontSize: theme.typography.fontSize.md,
-        color: theme.colors.text.primary,
-        borderWidth: 1,
-        borderColor: theme.colors.gray[200],
-    },
-    forgotButton: {
-        alignSelf: 'flex-end',
-        marginBottom: theme.spacing.lg,
-    },
-    forgotText: {
-        color: theme.colors.primary[600],
-        fontSize: theme.typography.fontSize.sm,
-        fontWeight: theme.typography.fontWeight.semibold,
-    },
-    loginButton: {
-        backgroundColor: theme.colors.primary[600],
-        borderRadius: theme.borderRadius.lg,
-        padding: theme.spacing.md,
-        alignItems: 'center',
-        ...theme.shadows.md,
-    },
-    loginButtonText: {
+        flex: 1,
         color: '#fff',
-        fontSize: theme.typography.fontSize.md,
-        fontWeight: theme.typography.fontWeight.bold,
+        fontSize: 16,
     },
-    divider: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: theme.spacing.lg,
+    forgotBtn: { alignSelf: 'flex-end', marginBottom: 25 },
+    forgotText: { color: theme.colors.primary[400], fontSize: 13, fontWeight: '600' },
+    loginBtn: {
+        height: 60,
+        borderRadius: 18,
+        overflow: 'hidden',
+        ...theme.shadows.premium,
     },
-    dividerLine: {
+    btnGradient: {
         flex: 1,
-        height: 1,
-        backgroundColor: theme.colors.gray[300],
-    },
-    dividerText: {
-        marginHorizontal: theme.spacing.md,
-        color: theme.colors.text.secondary,
-        fontSize: theme.typography.fontSize.sm,
-    },
-    socialButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: theme.spacing.md,
-    },
-    socialButton: {
-        flex: 1,
-        backgroundColor: theme.colors.gray[100],
-        borderRadius: theme.borderRadius.lg,
-        padding: theme.spacing.md,
+        justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: theme.colors.gray[300],
     },
-    socialButtonText: {
-        color: theme.colors.text.primary,
-        fontSize: theme.typography.fontSize.sm,
-        fontWeight: theme.typography.fontWeight.semibold,
+    loginBtnText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: '700',
     },
-    registerContainer: {
+    footer: {
         flexDirection: 'row',
         justifyContent: 'center',
-        marginTop: theme.spacing.lg,
+        marginTop: 30,
     },
-    registerText: {
-        color: theme.colors.text.secondary,
-        fontSize: theme.typography.fontSize.sm,
-    },
-    registerLink: {
-        color: theme.colors.primary[600],
-        fontSize: theme.typography.fontSize.sm,
-        fontWeight: theme.typography.fontWeight.bold,
-    },
+    footerText: { color: theme.colors.text.muted, fontSize: 14 },
+    footerLink: { color: theme.colors.primary[400], fontSize: 14, fontWeight: '700' },
 });
 
 export default LoginScreen;
