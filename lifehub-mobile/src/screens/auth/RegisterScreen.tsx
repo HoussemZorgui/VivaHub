@@ -53,7 +53,7 @@ export const RegisterScreen = () => {
             const response = await authService.register(formData);
             if (response.success) {
                 showToast('Compte créé ! Veuillez vérifier votre email.', 'success');
-                setTimeout(() => navigation.navigate('Login'), 1500);
+                setTimeout(() => navigation.navigate('EmailVerification', { email: formData.email }), 1500);
             }
         } catch (error: any) {
             showToast(error.message || "Erreur lors de l'inscription.", 'error');

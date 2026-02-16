@@ -110,7 +110,10 @@ export const LoginScreen = () => {
                             />
                         </View>
 
-                        <TouchableOpacity style={styles.forgotBtn} onPress={() => { }}>
+                        <TouchableOpacity
+                            style={styles.forgotBtn}
+                            onPress={() => navigation.navigate('ForgotPassword')}
+                        >
                             <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
                         </TouchableOpacity>
 
