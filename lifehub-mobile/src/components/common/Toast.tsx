@@ -5,31 +5,33 @@ import Animated, {
     useAnimatedStyle,
     withSpring,
     withTiming,
-    withSequence,
-    FadeInUp,
 } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
-import { useToastStore, ToastType } from '../../store/toastStore';
+import { useToastStore } from '../../store/toastStore';
 
 const { width } = Dimensions.get('window');
 
 export const Toast = () => {
-    const { visible, message, type, hideToast } = useToastStore();
+    const { visible, message, type } = useToastStore();
     const translateY = useSharedValue(-100);
 
     useEffect(() => {
         if (visible) {
             translateY.value = withSpring(Platform.OS === 'ios' ? 60 : 40, {
-                damping: 12,
-                stiffness: 90,
+                damping: 15,
+                stiffness: 100,
             });
         } else {
-            translateY.value = withTiming(-100, { duration: 300 });
+            translateY.value = withTiming(-150, { duration: 400 });
         }
     }, [visible]);
 
-    if (!visible && translateY.value === -100) return null;
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ translateY: translateY.value }],
+        opacity: translateY.value <= -100 ? 0 : 1,
+    }));
 
     const getIcon = (): any => {
         switch (type) {
@@ -49,19 +51,20 @@ export const Toast = () => {
         }
     };
 
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ translateY: translateY.value }],
-    }));
+    if (!visible && translateY.value <= -100) return null;
 
     return (
         <Animated.View style={[styles.container, animatedStyle]}>
-            <View style={[styles.glass, { borderColor: getColor() + '30' }]}>
-                <View style={[styles.iconContainer, { backgroundColor: getColor() + '15' }]}>
+            <BlurView intensity={80} tint="dark" style={[styles.glass, { borderColor: getColor() + '40' }]}>
+                <View style={[styles.iconContainer, { backgroundColor: getColor() + '20' }]}>
                     <Ionicons name={getIcon()} size={22} color={getColor()} />
                 </View>
-                <Text style={styles.message} numberOfLines={2}>{message}</Text>
+                <View style={styles.textContainer}>
+                    <Text style={styles.typeText}>{type.toUpperCase()}</Text>
+                    <Text style={styles.message} numberOfLines={2}>{message}</Text>
+                </View>
                 <View style={[styles.indicator, { backgroundColor: getColor() }]} />
-            </View>
+            </BlurView>
         </Animated.View>
     );
 };
@@ -78,35 +81,44 @@ const styles = StyleSheet.create({
     },
     glass: {
         width: '100%',
-        maxWidth: 400,
-        backgroundColor: 'rgba(25, 25, 25, 0.85)',
-        borderRadius: 20,
-        padding: 12,
+        maxWidth: 420,
+        borderRadius: 24,
+        padding: 14,
         flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: 1.5,
+        borderWidth: 1,
+        overflow: 'hidden',
         ...theme.shadows.premium,
     },
     iconContainer: {
-        width: 38,
-        height: 38,
-        borderRadius: 12,
+        width: 42,
+        height: 42,
+        borderRadius: 14,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 12,
+        marginRight: 14,
+    },
+    textContainer: {
+        flex: 1,
+        justifyContent: 'center',
+    },
+    typeText: {
+        color: 'rgba(255,255,255,0.5)',
+        fontSize: 10,
+        fontWeight: '800',
+        letterSpacing: 1,
+        marginBottom: 2,
     },
     message: {
-        flex: 1,
         color: '#fff',
         fontSize: 14,
         fontWeight: '600',
-        letterSpacing: 0.2,
+        lineHeight: 18,
     },
     indicator: {
-        width: 4,
-        height: 20,
+        width: 3,
+        height: 24,
         borderRadius: 2,
-        marginLeft: 10,
-        opacity: 0.8,
+        marginLeft: 12,
     },
 });

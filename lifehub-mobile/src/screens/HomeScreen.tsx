@@ -8,8 +8,11 @@ import { useAuthStore } from '../store/authStore';
 
 const { width } = Dimensions.get('window');
 
+import { useNavigation } from '@react-navigation/native';
+
 export const HomeScreen = () => {
-    const { user, logout } = useAuthStore();
+    const { user } = useAuthStore();
+    const navigation = useNavigation<any>();
 
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
@@ -17,9 +20,8 @@ export const HomeScreen = () => {
             <View style={styles.glassHeaderContainer}>
                 <View style={styles.headerGlass}>
                     <Image source={require('../../assets/images/logo.png')} style={styles.headerLogo} resizeMode="contain" />
-                    <TouchableOpacity onPress={logout} style={styles.profileBtn}>
-                        <Ionicons name="notifications-outline" size={24} color="#fff" />
-                        <View style={styles.notifBadge} />
+                    <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.profileBtn}>
+                        <Ionicons name="person-outline" size={22} color="#fff" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -61,12 +63,16 @@ export const HomeScreen = () => {
 
                 <Animated.View entering={FadeInUp.delay(800)} style={styles.moduleGrid}>
                     {[
-                        { title: 'Finance Pro', icon: 'trending-up', color: theme.colors.accent.emerald, desc: 'Analyses 3D' },
-                        { title: 'AI Neural', icon: 'hardware-chip-outline', color: '#a855f7', desc: 'GPT-4 Intégré' },
-                        { title: 'Santé Plus', icon: 'fitness-outline', color: theme.colors.accent.rose, desc: 'Bio-Sync' },
-                        { title: 'Exploration', icon: 'map-outline', color: theme.colors.accent.amber, desc: 'Cartes Pro' },
+                        { title: 'Finance Pro', icon: 'trending-up', color: theme.colors.accent.emerald, desc: 'Analyses 3D', target: 'Finance' },
+                        { title: 'Tâches Sync', icon: 'list-outline', color: '#a855f7', desc: 'Gestion Élite', target: 'Tasks' },
+                        { title: 'Santé Plus', icon: 'fitness-outline', color: theme.colors.accent.rose, desc: 'Bio-Sync', target: 'Health' },
+                        { title: 'Découvrir', icon: 'map-outline', color: theme.colors.accent.amber, desc: 'Cartes Pro', target: 'Home' },
                     ].map((item, index) => (
-                        <TouchableOpacity key={index} style={styles.moduleSquare}>
+                        <TouchableOpacity
+                            key={index}
+                            style={styles.moduleSquare}
+                            onPress={() => item.target && navigation.navigate(item.target as any)}
+                        >
                             <View style={[styles.moduleIconContainer, { backgroundColor: item.color + '15' }]}>
                                 <Ionicons name={item.icon as any} size={28} color={item.color} />
                             </View>

@@ -7,6 +7,8 @@ export interface User {
     firstName: string;
     lastName: string;
     avatar?: string;
+    phoneNumber?: string;
+    bio?: string;
     isEmailVerified: boolean;
     mfaEnabled?: boolean;
 }
