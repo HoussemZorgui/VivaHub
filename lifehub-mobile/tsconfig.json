@@ -16,6 +16,11 @@
     "isolatedModules": true,
     "jsx": "react-native",
     "incremental": true,
+    "types": [
+      "node",
+      "react",
+      "react-native"
+    ],
     "paths": {
       "@/*": [
         "./src/*"

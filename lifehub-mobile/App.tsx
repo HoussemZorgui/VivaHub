@@ -4,17 +4,17 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet } from 'react-native';
 import { useAuthStore } from './src/store/authStore';
-import { LoginScreen } from './src/screens/auth/LoginScreen';
+import { AppNavigator } from './src/navigation/AppNavigator';
+import { Toast } from './src/components/common/Toast';
 
 export default function App() {
-  const { loadAuthState, isLoading, isAuthenticated } = useAuthStore();
+  const { loadAuthState, isLoading } = useAuthStore();
 
   useEffect(() => {
     loadAuthState();
   }, []);
 
   if (isLoading) {
-    // TODO: Add splash screen
     return null;
   }
 
@@ -22,8 +22,8 @@ export default function App() {
     <GestureHandlerRootView style={styles.container}>
       <SafeAreaProvider>
         <StatusBar style="auto" />
-        {/* TODO: Add Navigation */}
-        <LoginScreen navigation={{}} />
+        <AppNavigator />
+        <Toast />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
