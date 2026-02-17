@@ -13,6 +13,19 @@ import { useNavigation } from '@react-navigation/native';
 export const HomeScreen = () => {
     const { user } = useAuthStore();
     const navigation = useNavigation<any>();
+    const [weather, setWeather] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        loadWeather();
+    }, []);
+
+    const loadWeather = async () => {
+        // Paris coordinates default
+        const response = await weatherService.getWeather(48.8566, 2.3522);
+        if (response.success) {
+            setWeather(response.data);
+        }
+    };
 
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false} stickyHeaderIndices={[0]}>
@@ -33,9 +46,26 @@ export const HomeScreen = () => {
                     <Text style={styles.userNameText}>{user?.firstName || 'Innovateur'} ✨</Text>
                 </Animated.View>
 
+                {/* Weather Widget */}
+                {weather && (
+                    <Animated.View entering={FadeInUp.delay(200)} style={styles.weatherCard}>
+                        <LinearGradient colors={['#3b82f6', '#1d4ed8']} style={styles.weatherGradient}>
+                            <View>
+                                <Text style={styles.weatherTemp}>{Math.round(weather.main.temp)}°</Text>
+                                <Text style={styles.weatherCity}>{weather.name}</Text>
+                                <Text style={styles.weatherDesc}>{weather.weather[0].description}</Text>
+                            </View>
+                            <Image
+                                source={{ uri: `https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png` }}
+                                style={{ width: 80, height: 80 }}
+                            />
+                        </LinearGradient>
+                    </Animated.View>
+                )}
+
                 {/* 3D Stat Row */}
-                <View style={styles.statGrid}>
-                    <Animated.View entering={FadeInUp.delay(200)} style={styles.statusCardLarge}>
+                <View style={[styles.statGrid, { marginTop: 20 }]}>
+                    <Animated.View entering={FadeInUp.delay(300)} style={styles.statusCardLarge}>
                         <LinearGradient colors={['#7c3aed', '#4f46e5']} style={styles.cardGradient}>
                             <View style={styles.cardTop}>
                                 <Ionicons name="flash" size={28} color="#fff" />
@@ -60,7 +90,6 @@ export const HomeScreen = () => {
 
                 {/* Module Exploration */}
                 <Text style={styles.sectionTitle}>Modules d'Elite</Text>
-
                 <Animated.View entering={FadeInUp.delay(800)} style={styles.moduleGrid}>
                     {[
                         { title: 'Finance Pro', icon: 'trending-up', color: theme.colors.accent.emerald, desc: 'Analyses 3D', target: 'Finance' },
@@ -93,10 +122,11 @@ export const HomeScreen = () => {
                             <Text style={styles.insightTitle}>Insight AI</Text>
                         </View>
                         <Text style={styles.insightText}>
-                            "Votre pic de productivité est à 10h. Prévoyez vos tâches complexes pour demain matin."
+                            "La météo est idéale aujourd'hui. Parfait pour une séance de course à pied vers 18h."
                         </Text>
                     </LinearGradient>
                 </Animated.View>
+                <View style={{ height: 100 }} />
             </View>
         </ScrollView>
     );
@@ -183,6 +213,11 @@ const styles = StyleSheet.create({
     aiInsightBox: { borderRadius: 28, overflow: 'hidden' },
     insightGradient: { padding: 25, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
     insightHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
+    weatherCard: { borderRadius: 28, overflow: 'hidden', marginBottom: 20 },
+    weatherGradient: { padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    weatherTemp: { fontSize: 48, fontWeight: '900', color: '#fff' },
+    weatherCity: { fontSize: 18, fontWeight: '700', color: '#fff', marginTop: 5 },
+    weatherDesc: { fontSize: 14, color: 'rgba(255,255,255,0.8)', textTransform: 'capitalize', marginTop: 2 },
     insightTitle: { color: theme.colors.primary[400], fontWeight: '800', fontSize: 14, textTransform: 'uppercase' },
     insightText: { color: 'rgba(255,255,255,0.8)', fontSize: 15, lineHeight: 22, fontWeight: '500' },
 });
