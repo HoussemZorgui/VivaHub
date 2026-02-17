@@ -15,6 +15,7 @@ import { apiLimiter } from './middleware/rateLimit.middleware.js';
 // Import routes
 import authRoutes from './modules/auth/auth.routes.js';
 import aiRoutes from './modules/ai/ai.routes.js';
+import financeRoutes from './modules/finance/finance.routes.js';
 
 export class App {
     public app: Application;
@@ -87,6 +88,7 @@ export class App {
         // API routes
         this.app.use('/api/auth', authRoutes);
         this.app.use('/api/ai', aiRoutes);
+        this.app.use('/api/finance', financeRoutes);
         // this.app.use('/api/media', mediaRoutes);
         // this.app.use('/api/gamification', gamificationRoutes);
 
