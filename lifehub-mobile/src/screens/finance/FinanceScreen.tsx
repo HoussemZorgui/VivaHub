@@ -1,14 +1,32 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { LineChart, PieChart } from 'react-native-chart-kit';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { financeService } from '../../services/finance.service';
 
 const { width } = Dimensions.get('window');
 
 export const FinanceScreen = () => {
+    const [marketData, setMarketData] = useState<any[]>([]);
+
+    useEffect(() => {
+        loadMarketData();
+    }, []);
+
+    const loadMarketData = async () => {
+        try {
+            const response = await financeService.getMarketOverview();
+            if (response.success) {
+                setMarketData(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to load crypto market data', error);
+        }
+    };
+
     const chartConfig = {
         backgroundGradientFrom: '#121212',
         backgroundGradientTo: '#121212',
@@ -156,6 +174,40 @@ export const FinanceScreen = () => {
                         </View>
                     ))}
                 </Animated.View>
+                <Animated.View entering={FadeInDown.delay(1000)} style={styles.section}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Marché Crypto</Text>
+                        <TouchableOpacity>
+                            <Text style={styles.seeAll}>Voir tout</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {marketData.length > 0 ? (
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -5 }}>
+                            {marketData.map((item, index) => (
+                                <TouchableOpacity key={item.id} style={styles.cryptoCard}>
+                                    <View style={styles.cryptoHeader}>
+                                        <Image source={{ uri: item.image }} style={styles.cryptoIcon} />
+                                        <View>
+                                            <Text style={styles.cryptoSymbol}>{item.symbol.toUpperCase()}</Text>
+                                            <Text style={styles.cryptoName}>{item.name}</Text>
+                                        </View>
+                                    </View>
+                                    <Text style={styles.cryptoPrice}>${item.current_price.toLocaleString()}</Text>
+                                    <Text style={[
+                                        styles.cryptoChange,
+                                        { color: item.price_change_percentage_24h > 0 ? '#10b981' : '#ef4444' }
+                                    ]}>
+                                        {item.price_change_percentage_24h > 0 ? '+' : ''}
+                                        {item.price_change_percentage_24h.toFixed(2)}%
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    ) : (
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginTop: 10 }}>Chargement du marché...</Text>
+                    )}
+                </Animated.View>
             </View>
             <View style={{ height: 100 }} />
         </ScrollView>
@@ -278,5 +330,46 @@ const styles = StyleSheet.create({
     transactionAmount: {
         fontSize: 16,
         fontWeight: '800',
+    },
+    cryptoCard: {
+        backgroundColor: '#121212',
+        borderRadius: 20,
+        padding: 15,
+        marginHorizontal: 5,
+        width: 150,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.05)',
+        ...theme.shadows.glass,
+    },
+    cryptoHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    cryptoIcon: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        marginRight: 10,
+    },
+    cryptoSymbol: {
+        color: 'rgba(255,255,255,0.5)',
+        fontSize: 10,
+        fontWeight: '700',
+    },
+    cryptoName: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    cryptoPrice: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '800',
+        marginBottom: 5,
+    },
+    cryptoChange: {
+        fontSize: 12,
+        fontWeight: '600',
     },
 });
