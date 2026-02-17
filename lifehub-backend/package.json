@@ -25,6 +25,7 @@
   "author": "LifeHub Team",
   "license": "MIT",
   "dependencies": {
+    "@huggingface/inference": "^4.13.12",
     "apollo-server-express": "^3.13.0",
     "axios": "^1.6.7",
     "bcryptjs": "^2.4.3",

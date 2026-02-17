@@ -14,6 +14,7 @@ import { apiLimiter } from './middleware/rateLimit.middleware.js';
 
 // Import routes
 import authRoutes from './modules/auth/auth.routes.js';
+import aiRoutes from './modules/ai/ai.routes.js';
 
 export class App {
     public app: Application;
@@ -85,14 +86,7 @@ export class App {
 
         // API routes
         this.app.use('/api/auth', authRoutes);
-
-        // TODO: Add more routes
-        // this.app.use('/api/tasks', taskRoutes);
-        // this.app.use('/api/finance', financeRoutes);
-        // this.app.use('/api/health', healthRoutes);
-        // this.app.use('/api/travel', travelRoutes);
-        // this.app.use('/api/social', socialRoutes);
-        // this.app.use('/api/ai', aiRoutes);
+        this.app.use('/api/ai', aiRoutes);
         // this.app.use('/api/media', mediaRoutes);
         // this.app.use('/api/gamification', gamificationRoutes);
 
