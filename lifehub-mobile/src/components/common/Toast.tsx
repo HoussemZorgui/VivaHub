@@ -51,10 +51,11 @@ export const Toast = () => {
         }
     };
 
-    if (!visible && translateY.value <= -100) return null;
-
     return (
-        <Animated.View style={[styles.container, animatedStyle]}>
+        <Animated.View
+            pointerEvents="none"
+            style={[styles.container, animatedStyle]}
+        >
             <BlurView intensity={80} tint="dark" style={[styles.glass, { borderColor: getColor() + '40' }]}>
                 <View style={[styles.iconContainer, { backgroundColor: getColor() + '20' }]}>
                     <Ionicons name={getIcon()} size={22} color={getColor()} />

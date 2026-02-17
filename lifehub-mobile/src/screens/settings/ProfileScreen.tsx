@@ -39,7 +39,7 @@ export const ProfileScreen = () => {
                 <Animated.View entering={FadeInUp.delay(200)} style={styles.profileInfo}>
                     <View style={styles.avatarContainer}>
                         <Image
-                            source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' }}
+                            source={{ uri: user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' }}
                             style={styles.avatar}
                         />
                         <TouchableOpacity style={styles.editAvatarBtn}>

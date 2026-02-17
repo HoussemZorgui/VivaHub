@@ -9,6 +9,7 @@ import { TasksScreen } from '../screens/productivity/TasksScreen';
 import { FinanceScreen } from '../screens/finance/FinanceScreen';
 import { HealthScreen } from '../screens/health/HealthScreen';
 import { ProfileScreen } from '../screens/settings/ProfileScreen';
+import { AIScreen } from '../screens/ai/AIScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,6 +23,7 @@ export const MainTabNavigator = () => {
 
                     if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
                     else if (route.name === 'Tasks') iconName = focused ? 'list' : 'list-outline';
+                    else if (route.name === 'AI') iconName = focused ? 'sparkles' : 'sparkles-outline';
                     else if (route.name === 'Finance') iconName = focused ? 'wallet' : 'wallet-outline';
                     else if (route.name === 'Health') iconName = focused ? 'heart' : 'heart-outline';
                     else if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
@@ -53,6 +55,7 @@ export const MainTabNavigator = () => {
         >
             <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Accueil' }} />
             <Tab.Screen name="Tasks" component={TasksScreen} options={{ title: 'Tâches' }} />
+            <Tab.Screen name="AI" component={AIScreen} options={{ title: 'AI' }} />
             <Tab.Screen name="Finance" component={FinanceScreen} options={{ title: 'Finance' }} />
             <Tab.Screen name="Health" component={HealthScreen} options={{ title: 'Santé' }} />
             <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />

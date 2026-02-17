@@ -66,7 +66,7 @@ export const HomeScreen = () => {
                         { title: 'Finance Pro', icon: 'trending-up', color: theme.colors.accent.emerald, desc: 'Analyses 3D', target: 'Finance' },
                         { title: 'Tâches Sync', icon: 'list-outline', color: '#a855f7', desc: 'Gestion Élite', target: 'Tasks' },
                         { title: 'Santé Plus', icon: 'fitness-outline', color: theme.colors.accent.rose, desc: 'Bio-Sync', target: 'Health' },
-                        { title: 'Découvrir', icon: 'map-outline', color: theme.colors.accent.amber, desc: 'Cartes Pro', target: 'Home' },
+                        { title: 'Neural AI', icon: 'sparkles-outline', color: theme.colors.primary[400], desc: 'Hugging Face GPT', target: 'AI' },
                     ].map((item, index) => (
                         <TouchableOpacity
                             key={index}

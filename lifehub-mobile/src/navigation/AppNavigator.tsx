@@ -6,6 +6,7 @@ import { MainTabNavigator } from './MainTabNavigator';
 import { useAuthStore } from '../store/authStore';
 import { ProfileScreen } from '../screens/settings/ProfileScreen';
 import { EditProfileScreen } from '../screens/settings/EditProfileScreen';
+import { AIScreen } from '../screens/ai/AIScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -19,6 +20,7 @@ export const AppNavigator = () => {
                     <Stack.Screen name="MainTabs" component={MainTabNavigator} />
                     <Stack.Screen name="Profile" component={ProfileScreen} />
                     <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+                    <Stack.Screen name="AI" component={AIScreen} />
                 </Stack.Navigator>
             ) : (
                 <AuthNavigator />

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,10 +28,10 @@ export const EditProfileScreen = () => {
         try {
             setLoading(true);
             const response = await authService.updateProfile({
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                phoneNumber: formData.phone,
-                bio: formData.bio,
+                firstName: formData.firstName.trim(),
+                lastName: formData.lastName.trim(),
+                phoneNumber: formData.phone.trim(),
+                bio: formData.bio.trim(),
             });
 
             if (response.success) {
@@ -73,8 +73,12 @@ export const EditProfileScreen = () => {
                         <Ionicons name="close" size={28} color="#fff" />
                     </TouchableOpacity>
                     <Text style={styles.headerTitle}>Modifier le Profil</Text>
-                    <TouchableOpacity onPress={handleSave}>
-                        <Text style={styles.saveBtn}>Enregistrer</Text>
+                    <TouchableOpacity onPress={handleSave} disabled={loading}>
+                        {loading ? (
+                            <ActivityIndicator size="small" color={theme.colors.primary[400]} />
+                        ) : (
+                            <Text style={styles.saveBtn}>Enregistrer</Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </LinearGradient>
@@ -87,7 +91,7 @@ export const EditProfileScreen = () => {
                     <View style={styles.avatarSection}>
                         <View style={styles.avatarWrapper}>
                             <Image
-                                source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' }}
+                                source={{ uri: user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80' }}
                                 style={styles.avatar}
                             />
                             <TouchableOpacity style={styles.changePicBtn}>
