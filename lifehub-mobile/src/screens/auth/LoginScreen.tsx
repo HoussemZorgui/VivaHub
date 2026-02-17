@@ -171,9 +171,9 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     logoImage: {
-        width: 220,
-        height: 80,
-        marginBottom: 10,
+        width: 450,
+        height: 250,
+        marginBottom: 20,
     },
     tagline: {
         color: theme.colors.text.secondary,

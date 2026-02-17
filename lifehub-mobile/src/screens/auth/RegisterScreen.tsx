@@ -43,6 +43,22 @@ export const RegisterScreen = () => {
             return;
         }
 
+        if (username.length < 3) {
+            showToast('Le nom d\'utilisateur doit contenir au moins 3 caractères.', 'warning');
+            return;
+        }
+
+        const alphanumericRegex = /^[a-zA-Z0-9]+$/;
+        if (!alphanumericRegex.test(username)) {
+            showToast('Le nom d\'utilisateur ne doit contenir que des caractères alphanumériques.', 'warning');
+            return;
+        }
+
+        if (password.length < 8) {
+            showToast('Le mot de passe doit contenir au moins 8 caractères.', 'warning');
+            return;
+        }
+
         if (password !== confirmPassword) {
             showToast('Les mots de passe ne correspondent pas.', 'error');
             return;
@@ -197,9 +213,9 @@ const styles = StyleSheet.create({
         zIndex: 10,
     },
     logoImage: {
-        width: 180,
-        height: 60,
-        marginBottom: 5,
+        width: 400,
+        height: 200,
+        marginBottom: 10,
     },
     subtitle: {
         fontSize: 14,

@@ -16,6 +16,10 @@ import { apiLimiter } from './middleware/rateLimit.middleware.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import aiRoutes from './modules/ai/ai.routes.js';
 import financeRoutes from './modules/finance/finance.routes.js';
+import weatherRoutes from './modules/weather/weather.routes.js';
+import healthRoutes from './modules/health/health.routes.js';
+
+// ...
 
 export class App {
     public app: Application;
@@ -89,6 +93,8 @@ export class App {
         this.app.use('/api/auth', authRoutes);
         this.app.use('/api/ai', aiRoutes);
         this.app.use('/api/finance', financeRoutes);
+        this.app.use('/api/weather', weatherRoutes);
+        this.app.use('/api/health', healthRoutes);
         // this.app.use('/api/media', mediaRoutes);
         // this.app.use('/api/gamification', gamificationRoutes);
 

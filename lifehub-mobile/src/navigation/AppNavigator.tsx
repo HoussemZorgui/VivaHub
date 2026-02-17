@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/authStore';
 import { ProfileScreen } from '../screens/settings/ProfileScreen';
 import { EditProfileScreen } from '../screens/settings/EditProfileScreen';
 import { AIScreen } from '../screens/ai/AIScreen';
+import { FoodSearchScreen } from '../screens/health/FoodSearchScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,7 @@ export const AppNavigator = () => {
                     <Stack.Screen name="Profile" component={ProfileScreen} />
                     <Stack.Screen name="EditProfile" component={EditProfileScreen} />
                     <Stack.Screen name="AI" component={AIScreen} />
+                    <Stack.Screen name="FoodSearch" component={FoodSearchScreen} />
                 </Stack.Navigator>
             ) : (
                 <AuthNavigator />

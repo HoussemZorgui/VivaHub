@@ -42,18 +42,11 @@ export const HealthScreen = () => {
         { date: "2026-02-16", count: 5 },
     ];
 
-    const [searchQuery, setSearchQuery] = React.useState('');
     const [foodData, setFoodData] = React.useState<any>(null);
+    const useNavigation = require('@react-navigation/native').useNavigation;
+    const navigation = useNavigation();
 
-    const handleSearch = async () => {
-        if (!searchQuery.trim()) return;
-
-        // Use the newly created healthService
-        const result = await healthService.getNutrients(searchQuery);
-        if (result.success && result.data?.foods?.[0]) {
-            setFoodData(result.data.foods[0]);
-        }
-    };
+    // ... (keep activity data)
 
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -63,23 +56,24 @@ export const HealthScreen = () => {
                 end={{ x: 0, y: 1 }}
                 style={styles.header}
             >
-                <Animated.View entering={FadeInUp.delay(200)} style={styles.headerContent}>
+                <View style={styles.headerContent}>
                     <Text style={styles.headerTitle}>Santé & Performance</Text>
 
-                    {/* Nutritional Search Area */}
-                    <View style={styles.searchContainer}>
+                    {/* Nutritional Search Area - Navigates to dedicated screen */}
+                    <TouchableOpacity
+                        style={[styles.searchContainer, { backgroundColor: 'rgba(255,255,255,0.15)' }]}
+                        onPress={() => navigation.navigate('FoodSearch')}
+                    >
                         <TextInput
                             placeholder="Rechercher un aliment (ex: pomme)..."
-                            placeholderTextColor="rgba(255,255,255,0.5)"
-                            style={styles.searchInput}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            onSubmitEditing={handleSearch}
+                            placeholderTextColor="rgba(255,255,255,0.6)"
+                            style={[styles.searchInput, { pointerEvents: 'none' }]} // Disable input content interaction
+                            editable={false} // Make it read-only/clickable
                         />
-                        <TouchableOpacity onPress={handleSearch} style={styles.searchBtn}>
-                            <Ionicons name="search" size={20} color="#fff" />
-                        </TouchableOpacity>
-                    </View>
+                        <View style={styles.searchBtn}>
+                            <Ionicons name="search" size={24} color="#fff" />
+                        </View>
+                    </TouchableOpacity>
 
                     {foodData ? (
                         <View style={styles.foodCard}>
@@ -119,7 +113,7 @@ export const HealthScreen = () => {
                             <Text style={styles.statLab}>km</Text>
                         </View>
                     </View>
-                </Animated.View>
+                </View>
             </LinearGradient>
 
             <View style={styles.content}>

@@ -93,9 +93,9 @@ export const config = {
         notion: {
             apiKey: process.env.NOTION_API_KEY || '',
         },
-        nutritionix: {
-            apiKey: process.env.NUTRITIONIX_API_KEY || '',
-            apiId: process.env.NUTRITIONIX_API_ID || '',
+        edamam: {
+            appId: process.env.EDAMAM_APP_ID || '',
+            appKey: process.env.EDAMAM_APP_KEY || '',
         },
         foursquare: {
             apiKey: process.env.FOURSQUARE_API_KEY || '',

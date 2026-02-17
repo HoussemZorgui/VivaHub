@@ -149,6 +149,12 @@ export class ApiService {
 
             if (axiosError.response) {
                 // Server responded with error
+                // Check for detailed validation errors first
+                if (axiosError.response.data?.errors && Array.isArray(axiosError.response.data.errors) && axiosError.response.data.errors.length > 0) {
+                    const firstError = axiosError.response.data.errors[0];
+                    return new Error(firstError.message || axiosError.response.data.message || axiosError.message);
+                }
+
                 const message = axiosError.response.data?.message || axiosError.message;
                 return new Error(message);
             }

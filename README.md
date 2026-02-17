@@ -67,6 +67,22 @@ npx expo start
 
 ---
 
+## 📸 Screenshots
+
+| Login | Sign Up | Home |
+|-------|---------|------|
+| ![Login](./lifehub-mobile/assets/images/login_screen.png) | ![Sign Up](./lifehub-mobile/assets/images/sign-up-screen.png) | ![Home](./lifehub-mobile/assets/images/home-screen.png) |
+
+| Finance | Health | AI Assistant |
+|---------|--------|--------------|
+| ![Finance](./lifehub-mobile/assets/images/finanance-screen.png) | ![Health](./lifehub-mobile/assets/images/sante-screen.png) | ![AI](./lifehub-mobile/assets/images/chatbot-screen.png) |
+
+| Profile |
+|---------|
+| ![Profile](./lifehub-mobile/assets/images/profile-screen.png) |
+
+---
+
 ## ✨ Core Features (Roadmap)
 - [x] **Core Infra:** Multi-database connection (Mongo, Postgres, Redis).
 - [x] **Auth System:** Secure JWT-based authentication with Refresh tokens.
