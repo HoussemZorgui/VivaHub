@@ -12,18 +12,27 @@ const { width } = Dimensions.get('window');
 export const FinanceScreen = () => {
     const [marketData, setMarketData] = useState<any[]>([]);
 
+    const [dashboardData, setDashboardData] = useState<any>(null);
+
     useEffect(() => {
-        loadMarketData();
+        loadData();
     }, []);
 
-    const loadMarketData = async () => {
+    const loadData = async () => {
         try {
-            const response = await financeService.getMarketOverview();
-            if (response.success) {
-                setMarketData(response.data);
+            const [marketRes, dashboardRes] = await Promise.all([
+                financeService.getMarketOverview(),
+                financeService.getDashboardData()
+            ]);
+
+            if (marketRes.success) {
+                setMarketData(marketRes.data);
+            }
+            if (dashboardRes.success) {
+                setDashboardData(dashboardRes.data);
             }
         } catch (error) {
-            console.error('Failed to load crypto market data', error);
+            console.error('Failed to load finance data', error);
         }
     };
 
@@ -41,11 +50,14 @@ export const FinanceScreen = () => {
         }
     };
 
-    const data = {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    // Fallback data if no real data exists
+    const incomeData = {
+        labels: dashboardData?.chartData?.labels || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
         datasets: [
             {
-                data: [2500, 3200, 2800, 4500, 3900, 5200],
+                data: dashboardData?.chartData?.income.some((v: number) => v > 0)
+                    ? dashboardData.chartData.income
+                    : [0, 0, 0, 0, 0, 0],
                 color: (opacity = 1) => `rgba(99, 102, 241, ${opacity})`,
                 strokeWidth: 2
             }
@@ -53,39 +65,11 @@ export const FinanceScreen = () => {
         legend: ['Revenus']
     };
 
-    const pieData = [
+    const pieData = dashboardData?.pieData?.length > 0 ? dashboardData.pieData : [
         {
-            name: 'Logement',
-            population: 35,
-            color: '#6366f1',
-            legendFontColor: '#7F7F7F',
-            legendFontSize: 12
-        },
-        {
-            name: 'Alimentation',
-            population: 20,
-            color: '#10b981',
-            legendFontColor: '#7F7F7F',
-            legendFontSize: 12
-        },
-        {
-            name: 'Transport',
-            population: 15,
-            color: '#f59e0b',
-            legendFontColor: '#7F7F7F',
-            legendFontSize: 12
-        },
-        {
-            name: 'Loisirs',
-            population: 20,
-            color: '#ec4899',
-            legendFontColor: '#7F7F7F',
-            legendFontSize: 12
-        },
-        {
-            name: 'Autres',
-            population: 10,
-            color: '#6b7280',
+            name: 'Aucune donnée',
+            population: 100,
+            color: '#333',
             legendFontColor: '#7F7F7F',
             legendFontSize: 12
         }
@@ -101,15 +85,15 @@ export const FinanceScreen = () => {
                     <Text style={styles.headerTitle}>Tableau de Bord Financier</Text>
                     <View style={styles.balanceCard}>
                         <Text style={styles.balanceLabel}>Solde Total</Text>
-                        <Text style={styles.balanceAmount}>12,450.80 €</Text>
+                        <Text style={styles.balanceAmount}>{dashboardData?.balance?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) || '0,00 €'}</Text>
                         <View style={styles.statsRow}>
                             <View style={styles.statItem}>
                                 <Ionicons name="arrow-up-circle" size={20} color="#10b981" />
-                                <Text style={styles.statValue}>+2,100 €</Text>
+                                <Text style={styles.statValue}>+{dashboardData?.income?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) || '0 €'}</Text>
                             </View>
                             <View style={styles.statItem}>
                                 <Ionicons name="arrow-down-circle" size={20} color="#ef4444" />
-                                <Text style={styles.statValue}>-850 €</Text>
+                                <Text style={styles.statValue}>-{dashboardData?.expense?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) || '0 €'}</Text>
                             </View>
                         </View>
                     </View>
@@ -121,7 +105,7 @@ export const FinanceScreen = () => {
                     <Text style={styles.sectionTitle}>Évolution des Revenus</Text>
                     <View style={styles.chartCard}>
                         <LineChart
-                            data={data}
+                            data={incomeData}
                             width={width - 50}
                             height={220}
                             chartConfig={chartConfig}
@@ -155,24 +139,27 @@ export const FinanceScreen = () => {
                         </TouchableOpacity>
                     </View>
 
-                    {[1, 2, 3].map((item) => (
-                        <View key={item} style={styles.transactionCard}>
-                            <View style={[styles.iconBox, { backgroundColor: item === 2 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
-                                <Ionicons
-                                    name={item === 2 ? "business-outline" : "cart-outline"}
-                                    size={24}
-                                    color={item === 2 ? "#10b981" : "#ef4444"}
-                                />
+                    {dashboardData?.transactions?.length > 0 ? (
+                        dashboardData.transactions.map((item: any) => (
+                            <View key={item._id} style={styles.transactionCard}>
+                                <View style={[styles.iconBox, { backgroundColor: item.type === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)' }]}>
+                                    <Ionicons
+                                        name={item.type === 'income' ? "arrow-up" : "cart-outline"}
+                                        size={24}
+                                        color={item.type === 'income' ? "#10b981" : "#ef4444"}
+                                    />
+                                </View>
+                                <View style={styles.transactionInfo}>
+                                    <Text style={styles.transactionName}>{item.category}</Text>
+                                    <Text style={styles.transactionDate}>{new Date(item.date).toLocaleDateString()}</Text>
+                                </View>
+                                <Text style={[styles.transactionAmount, { color: item.type === 'income' ? "#10b981" : "#fff" }]}>
+                                    {item.type === 'income' ? '+' : '-'}{item.amount.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                                </Text>
                             </View>
-                            <View style={styles.transactionInfo}>
-                                <Text style={styles.transactionName}>{item === 2 ? "Salaire Mensuel" : "Supermarché City"}</Text>
-                                <Text style={styles.transactionDate}>16 Fév 2026</Text>
-                            </View>
-                            <Text style={[styles.transactionAmount, { color: item === 2 ? "#10b981" : "#fff" }]}>
-                                {item === 2 ? "+3,200.00 €" : "-45.20 €"}
-                            </Text>
-                        </View>
-                    ))}
+                        ))) : (
+                        <Text style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>Aucune transaction récente</Text>
+                    )}
                 </Animated.View>
                 <Animated.View entering={FadeInDown.delay(1000)} style={styles.section}>
                     <View style={styles.sectionHeader}>
@@ -193,13 +180,13 @@ export const FinanceScreen = () => {
                                             <Text style={styles.cryptoName}>{item.name}</Text>
                                         </View>
                                     </View>
-                                    <Text style={styles.cryptoPrice}>${item.current_price.toLocaleString()}</Text>
+                                    <Text style={styles.cryptoPrice}>${(item.current_price || 0).toLocaleString()}</Text>
                                     <Text style={[
                                         styles.cryptoChange,
-                                        { color: item.price_change_percentage_24h > 0 ? '#10b981' : '#ef4444' }
+                                        { color: (item.price_change_percentage_24h || 0) > 0 ? '#10b981' : '#ef4444' }
                                     ]}>
-                                        {item.price_change_percentage_24h > 0 ? '+' : ''}
-                                        {item.price_change_percentage_24h.toFixed(2)}%
+                                        {(item.price_change_percentage_24h || 0) > 0 ? '+' : ''}
+                                        {(item.price_change_percentage_24h || 0).toFixed(2)}%
                                     </Text>
                                 </TouchableOpacity>
                             ))}

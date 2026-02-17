@@ -27,6 +27,36 @@ class FinanceService {
             throw error.response?.data || error.message;
         }
     }
+
+    async getDashboardData() {
+        try {
+            const headers = await this.getAuthHeader();
+            const response = await axios.get(`${config.api.baseURL}/finance/dashboard`, { headers });
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || error.message;
+        }
+    }
+
+    async getTransactions() {
+        try {
+            const headers = await this.getAuthHeader();
+            const response = await axios.get(`${config.api.baseURL}/finance/transactions`, { headers });
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || error.message;
+        }
+    }
+
+    async addTransaction(transaction: any) {
+        try {
+            const headers = await this.getAuthHeader();
+            const response = await axios.post(`${config.api.baseURL}/finance/transactions`, transaction, { headers });
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || error.message;
+        }
+    }
 }
 
 export const financeService = new FinanceService();
