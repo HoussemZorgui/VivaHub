@@ -15,23 +15,17 @@ class HuggingFaceService {
 
     async chat(message: string, systemPrompt?: string): Promise<string> {
         try {
-            const prompt = systemPrompt
-                ? `System: ${systemPrompt}\nUser: ${message}\nAssistant:`
-                : `User: ${message}\nAssistant:`;
-
-            const response = await this.hf.textGeneration({
+            const response = await this.hf.chatCompletion({
                 model: 'mistralai/Mistral-7B-Instruct-v0.2',
-                inputs: prompt,
-                parameters: {
-                    max_new_tokens: 500,
-                    temperature: 0.7,
-                    top_p: 0.95,
-                    repetition_penalty: 1.2,
-                    return_full_text: false,
-                },
+                messages: [
+                    { role: 'system', content: systemPrompt || 'You are a helpful assistant.' },
+                    { role: 'user', content: message }
+                ],
+                max_tokens: 500,
+                temperature: 0.7,
             });
 
-            return response.generated_text;
+            return response.choices[0].message.content || '';
         } catch (error: any) {
             logger.error('Hugging Face Chat Error:', error);
             throw new Error('Failed to generate response from AI');
@@ -45,7 +39,7 @@ class HuggingFaceService {
                 inputs: prompt,
             });
 
-            return response as Blob;
+            return response as unknown as Blob;
         } catch (error: any) {
             logger.error('Hugging Face Image Error:', error);
             throw new Error('Failed to generate image from AI');

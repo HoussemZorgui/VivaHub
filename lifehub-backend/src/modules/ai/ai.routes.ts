@@ -16,6 +16,7 @@ const imageSchema = Joi.object({
 });
 
 // All AI routes are protected
+router.get('/history', authenticate, aiController.getHistory.bind(aiController) as any);
 router.post('/chat', authenticate, validate(chatSchema), aiController.chat.bind(aiController));
 router.post('/image', authenticate, validate(imageSchema), aiController.generateImage.bind(aiController));
 
