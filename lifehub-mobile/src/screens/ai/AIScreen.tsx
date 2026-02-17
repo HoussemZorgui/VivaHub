@@ -18,17 +18,31 @@ interface Message {
 
 export const AIScreen = () => {
     const { user } = useAuthStore();
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '1',
-            text: `Bonjour ${user?.firstName || ''} ! Je suis votre assistant Neural AI propulsé par Hugging Face. Comment puis-je vous aider aujourd'hui ?`,
-            sender: 'ai',
-            timestamp: new Date(),
-        }
-    ]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
     const [loading, setLoading] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
+
+    useEffect(() => {
+        loadHistory();
+    }, []);
+
+    const loadHistory = async () => {
+        try {
+            const response = await aiService.getHistory();
+            if (response && response.data) {
+                const history = response.data.map((msg: any) => ({
+                    id: Math.random().toString(36).substr(2, 9),
+                    text: msg.text,
+                    sender: msg.sender,
+                    timestamp: new Date(msg.timestamp),
+                }));
+                setMessages(history);
+            }
+        } catch (error) {
+            console.error('Failed to load chat history', error);
+        }
+    };
 
     const handleSend = async () => {
         if (!inputText.trim() || loading) return;
