@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User } from '../services/auth.service';
+import authService, { User } from '../services/auth.service';
 
 export interface AuthState {
     user: User | null;
@@ -64,6 +64,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     logout: async () => {
         try {
+            // Call backend logout to invalidate session in Redis
+            try {
+                const token = get().token;
+                if (token) {
+                    await authService.logout();
+                }
+            } catch (err) {
+                console.warn('Backend logout failed, proceeding with local logout');
+            }
+
             await AsyncStorage.multiRemove([
                 '@lifehub:token',
                 '@lifehub:refreshToken',

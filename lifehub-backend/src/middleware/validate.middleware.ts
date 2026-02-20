@@ -64,6 +64,23 @@ export const schemas = {
         password: Joi.string().min(8).required(),
     }),
 
+    verifyOTP: Joi.object({
+        email: Joi.string().email().required(),
+        otp: Joi.string().length(6).required(),
+    }),
+
+    resendOTP: Joi.object({
+        email: Joi.string().email().required(),
+    }),
+
+    googleLogin: Joi.object({
+        idToken: Joi.string().required(),
+    }),
+
+    githubLogin: Joi.object({
+        accessToken: Joi.string().required(),
+    }),
+
     updateProfile: Joi.object({
         firstName: Joi.string().min(2).max(50),
         lastName: Joi.string().min(2).max(50),

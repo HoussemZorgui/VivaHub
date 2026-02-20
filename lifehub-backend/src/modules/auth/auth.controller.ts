@@ -3,6 +3,9 @@ import jwt, { Secret } from 'jsonwebtoken';
 import { User, IUser } from './user.model.js';
 import { config } from '../../config/index.js';
 import logger from '../../config/logger.js';
+import emailService from '../../services/email.service.js';
+import redisCache from '../../database/redis.js';
+import axios from 'axios';
 
 export interface AuthRequest extends Request {
     user?: IUser;
@@ -37,12 +40,12 @@ export class AuthController {
                 username,
             });
 
-            // Generate email verification token
-            const verificationToken = user.generateEmailVerificationToken();
+            // Generate OTP
+            const otpCode = user.generateOTP();
             await user.save();
 
-            // TODO: Send verification email
-            logger.info(`Verification token for ${email}: ${verificationToken}`);
+            // Send OTP email
+            await emailService.sendOTP(email, otpCode);
 
             // Generate JWT token
             const token = this.generateToken(user._id.toString());
@@ -50,7 +53,7 @@ export class AuthController {
 
             res.status(201).json({
                 success: true,
-                message: 'User registered successfully. Please verify your email.',
+                message: 'User registered successfully. Please verify your email with the OTP sent.',
                 data: {
                     user: {
                         id: user._id,
@@ -118,6 +121,9 @@ export class AuthController {
             const token = this.generateToken(user._id.toString());
             const refreshToken = this.generateRefreshToken(user._id.toString());
 
+            // Store session in Redis for ultra-solid security
+            await redisCache.set(`session:${user._id}:${token.slice(-10)}`, 'active', 604800); // 7 days
+
             res.status(200).json({
                 success: true,
                 message: 'Login successful',
@@ -146,27 +152,28 @@ export class AuthController {
         }
     }
 
-    // Verify email
-    async verifyEmail(req: Request, res: Response): Promise<void> {
+    // Verify OTP
+    async verifyOTP(req: Request, res: Response): Promise<void> {
         try {
-            const { token } = req.params;
+            const { email, otp } = req.body;
 
             const user = await User.findOne({
-                emailVerificationToken: token,
-                emailVerificationExpires: { $gt: new Date() },
+                email,
+                otpCode: otp,
+                otpExpires: { $gt: new Date() },
             });
 
             if (!user) {
                 res.status(400).json({
                     success: false,
-                    message: 'Invalid or expired verification token',
+                    message: 'Invalid or expired OTP',
                 });
                 return;
             }
 
             user.isEmailVerified = true;
-            user.emailVerificationToken = undefined;
-            user.emailVerificationExpires = undefined;
+            user.otpCode = undefined;
+            user.otpExpires = undefined;
             await user.save();
 
             res.status(200).json({
@@ -180,6 +187,143 @@ export class AuthController {
                 message: 'Email verification failed',
                 error: error.message,
             });
+        }
+    }
+
+    // Resend OTP
+    async resendOTP(req: Request, res: Response): Promise<void> {
+        try {
+            const { email } = req.body;
+            const user = await User.findOne({ email });
+
+            if (!user) {
+                res.status(404).json({ success: false, message: 'User not found' });
+                return;
+            }
+
+            const otp = user.generateOTP();
+            await user.save();
+            await emailService.sendOTP(email, otp);
+
+            res.status(200).json({
+                success: true,
+                message: 'New OTP sent to your email',
+            });
+        } catch (error: any) {
+            res.status(500).json({ success: false, message: 'Failed to resend OTP' });
+        }
+    }
+
+    // Logout
+    async logout(req: Request, res: Response): Promise<void> {
+        try {
+            const authHeader = req.headers.authorization;
+            if (authHeader) {
+                const token = authHeader.split(' ')[1];
+                await redisCache.delete(`session:${req.userId}:${token.slice(-10)}`);
+            }
+
+            res.status(200).json({
+                success: true,
+                message: 'Logged out successfully',
+            });
+        } catch (error: any) {
+            res.status(500).json({ success: false, message: 'Logout failed' });
+        }
+    }
+
+    // Google Login
+    async googleLogin(req: Request, res: Response): Promise<void> {
+        try {
+            const { idToken } = req.body;
+
+            // Verify token with Google
+            const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+            const { sub: googleId, email, given_name: firstName, family_name: lastName, picture: avatar } = response.data;
+
+            let user = await User.findOne({ email });
+
+            if (!user) {
+                // Register new user via Google
+                user = new User({
+                    email,
+                    googleId,
+                    firstName: firstName || 'Google',
+                    lastName: lastName || 'User',
+                    username: `user_${Math.random().toString(36).slice(2, 7)}`,
+                    avatar,
+                    isEmailVerified: true, // Google emails are pre-verified
+                });
+                await user.save();
+            } else {
+                // Link Google account if not linked
+                if (!user.googleId) {
+                    user.googleId = googleId;
+                    await user.save();
+                }
+            }
+
+            const token = this.generateToken(user._id.toString());
+            const refreshToken = this.generateRefreshToken(user._id.toString());
+
+            // Track session
+            await redisCache.set(`session:${user._id}:${token.slice(-10)}`, 'active', 604800);
+
+            res.status(200).json({
+                success: true,
+                data: { user, token, refreshToken }
+            });
+        } catch (error: any) {
+            logger.error('Google login error:', error);
+            res.status(401).json({ success: false, message: 'Google authentication failed' });
+        }
+    }
+
+    // GitHub Login
+    async githubLogin(req: Request, res: Response): Promise<void> {
+        try {
+            const { accessToken } = req.body;
+
+            // Get user info from GitHub
+            const response = await axios.get('https://api.github.com/user', {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            const { id: githubId, email, name, login: githubUsername, avatar_url: avatar } = response.data;
+
+            // GitHub doesn't always return a public email
+            const userEmail = email || `${githubUsername}@github.com`;
+
+            let user = await User.findOne({ $or: [{ githubId: githubId.toString() }, { email: userEmail }] });
+
+            if (!user) {
+                user = new User({
+                    email: userEmail,
+                    githubId: githubId.toString(),
+                    firstName: name ? name.split(' ')[0] : githubUsername,
+                    lastName: name ? name.split(' ').slice(1).join(' ') : 'User',
+                    username: githubUsername,
+                    avatar,
+                    isEmailVerified: true,
+                });
+                await user.save();
+            } else if (!user.githubId) {
+                user.githubId = githubId.toString();
+                await user.save();
+            }
+
+            const token = this.generateToken(user._id.toString());
+            const refreshToken = this.generateRefreshToken(user._id.toString());
+
+            // Track session
+            await redisCache.set(`session:${user._id}:${token.slice(-10)}`, 'active', 604800);
+
+            res.status(200).json({
+                success: true,
+                data: { user, token, refreshToken }
+            });
+        } catch (error: any) {
+            logger.error('GitHub login error:', error);
+            res.status(401).json({ success: false, message: 'GitHub authentication failed' });
         }
     }
 
@@ -205,6 +349,9 @@ export class AuthController {
             // Generate new tokens
             const newToken = this.generateToken(decoded.userId);
             const newRefreshToken = this.generateRefreshToken(decoded.userId);
+
+            // Update session in Redis
+            await redisCache.set(`session:${decoded.userId}:${newToken.slice(-10)}`, 'active', 604800);
 
             res.status(200).json({
                 success: true,

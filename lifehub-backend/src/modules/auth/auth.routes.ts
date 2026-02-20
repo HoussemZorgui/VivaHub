@@ -13,7 +13,11 @@ router.post('/login', authLimiter, validate(schemas.login), authController.login
 
 router.post('/refresh-token', validate(schemas.refreshToken), authController.refreshToken.bind(authController));
 
-router.get('/verify-email/:token', authController.verifyEmail.bind(authController));
+router.post('/verify-otp', authLimiter, validate(schemas.verifyOTP), authController.verifyOTP.bind(authController));
+router.post('/resend-otp', authLimiter, validate(schemas.resendOTP), authController.resendOTP.bind(authController));
+
+router.post('/google', authLimiter, validate(schemas.googleLogin), authController.googleLogin.bind(authController));
+router.post('/github', authLimiter, validate(schemas.githubLogin), authController.githubLogin.bind(authController));
 
 router.post('/forgot-password', passwordResetLimiter, validate(schemas.forgotPassword), authController.forgotPassword.bind(authController));
 
@@ -23,6 +27,8 @@ router.post('/reset-password/:token', validate(schemas.resetPassword), authContr
 router.get('/profile', authenticate, authController.getProfile.bind(authController) as any);
 
 router.patch('/profile', authenticate, validate(schemas.updateProfile), authController.updateProfile.bind(authController) as any);
+
+router.post('/logout', authenticate, authController.logout.bind(authController) as any);
 
 // TODO: OAuth routes
 // router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

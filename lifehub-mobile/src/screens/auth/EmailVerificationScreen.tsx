@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { theme } from '../../theme';
 import { useToastStore } from '../../store/toastStore';
+import authService from '../../services/auth.service';
 
 export const EmailVerificationScreen = () => {
     const navigation = useNavigation<any>();
@@ -44,18 +45,47 @@ export const EmailVerificationScreen = () => {
         }
     };
 
-    const handleVerify = () => {
+    const [loading, setLoading] = useState(false);
+
+    const handleVerify = async () => {
         const code = otp.join('');
         if (code.length < 6) {
             showToast('Veuillez entrer le code complet.', 'warning');
             return;
         }
 
-        // Static simulation
-        showToast('Email vérifié avec succès !', 'success');
+        try {
+            setLoading(true);
+            const response = await authService.verifyOTP(email, code);
 
-        const nextScreen = route.params?.type === 'reset' ? 'ResetPassword' : 'Login';
-        setTimeout(() => navigation.navigate(nextScreen), 1500);
+            if (response.success) {
+                showToast('Email vérifié avec succès !', 'success');
+                const nextScreen = route.params?.type === 'reset' ? 'ResetPassword' : 'Login';
+                setTimeout(() => navigation.navigate(nextScreen), 1500);
+            } else {
+                showToast(response.message || 'Code invalide.', 'error');
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Une erreur est survenue.', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResend = async () => {
+        try {
+            setLoading(true);
+            const response = await authService.resendOTP(email);
+            if (response.success) {
+                showToast('Un nouveau code a été envoyé.', 'success');
+            } else {
+                showToast(response.message || 'Erreur lors de l\'envoi.', 'error');
+            }
+        } catch (error: any) {
+            showToast('Une erreur est survenue.', 'error');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -107,18 +137,28 @@ export const EmailVerificationScreen = () => {
                             ))}
                         </View>
 
-                        <TouchableOpacity style={styles.verifyButton} onPress={handleVerify}>
+                        <TouchableOpacity
+                            style={[styles.verifyButton, loading && { opacity: 0.7 }]}
+                            onPress={handleVerify}
+                            disabled={loading}
+                        >
                             <LinearGradient
                                 colors={theme.colors.gradients.premium as any}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 0 }}
                                 style={styles.btnGradient}
                             >
-                                <Text style={styles.verifyButtonText}>Vérifier le code</Text>
+                                <Text style={styles.verifyButtonText}>
+                                    {loading ? 'Vérification...' : 'Vérifier le code'}
+                                </Text>
                             </LinearGradient>
                         </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.resendButton}>
+                        <TouchableOpacity
+                            style={styles.resendButton}
+                            onPress={handleResend}
+                            disabled={loading}
+                        >
                             <Text style={styles.resendText}>
                                 Vous n'avez pas reçu le code ? <Text style={styles.resendLink}>Renvoyer</Text>
                             </Text>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -9,28 +9,89 @@ import {
     KeyboardAvoidingView,
     Platform,
     ActivityIndicator,
-    Image,
     Dimensions,
+    Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '../../theme';
 import { authService } from '../../services/auth.service';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import * as AuthSession from 'expo-auth-session';
 
-const { width, height } = Dimensions.get('window');
+WebBrowser.maybeCompleteAuthSession();
 
-export const LoginScreen = () => {
-    const navigation = useNavigation<any>();
+const { width } = Dimensions.get('window');
+
+export const LoginScreen = ({ navigation }: any) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuthStore();
     const showToast = useToastStore(state => state.showToast);
+
+    // Google Auth
+    const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
+        webClientId: '256398333046-phugh4vhmkldc3t3v7enocvo0rgh2fbg.apps.googleusercontent.com',
+        iosClientId: 'YOUR_GOOGLE_IOS_CLIENT_ID',
+        androidClientId: 'YOUR_GOOGLE_ANDROID_CLIENT_ID',
+    });
+
+    // GitHub Auth
+    const githubDiscovery = {
+        authorizationEndpoint: 'https://github.com/login/oauth/authorize',
+        tokenEndpoint: 'https://github.com/login/oauth/access_token',
+        revocationEndpoint: `https://github.com/settings/connections/applications/YOUR_GITHUB_CLIENT_ID`,
+    };
+
+    const [githubRequest, githubResponse, promptGithubAsync] = AuthSession.useAuthRequest(
+        {
+            clientId: 'YOUR_GITHUB_CLIENT_ID_HERE',
+            scopes: ['user:email'],
+            redirectUri: AuthSession.makeRedirectUri({
+                scheme: 'lifehub'
+            }),
+        },
+        githubDiscovery
+    );
+
+    useEffect(() => {
+        if (googleResponse?.type === 'success') {
+            const { id_token } = googleResponse.params;
+            handleSocialLogin('google', id_token);
+        }
+    }, [googleResponse]);
+
+    useEffect(() => {
+        if (githubResponse?.type === 'success') {
+            const { code } = githubResponse.params;
+            handleSocialLogin('github', code);
+        }
+    }, [githubResponse]);
+
+    const handleSocialLogin = async (provider: 'google' | 'github', token: string) => {
+        try {
+            setLoading(true);
+            const response = provider === 'google'
+                ? await authService.googleLogin(token)
+                : await authService.githubLogin(token);
+
+            if (response.success) {
+                await login(response.data.user, response.data.token, response.data.refreshToken);
+                showToast(`Bienvenue ${response.data.user.firstName} !`, 'success');
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Échec de la connexion sociale.', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -55,13 +116,11 @@ export const LoginScreen = () => {
         <View style={styles.container}>
             <StatusBar style="light" />
 
-            {/* Dark Premium Background */}
             <View style={styles.background}>
                 <LinearGradient
                     colors={['#050505', '#1a1a2e', '#050505']}
                     style={StyleSheet.absoluteFill}
                 />
-                {/* Decorative 3D Spheres (Abstract) */}
                 <View style={[styles.sphere, { top: -50, right: -50, backgroundColor: theme.colors.primary[600] }]} />
                 <View style={[styles.sphere, { bottom: 100, left: -100, width: 300, height: 300, backgroundColor: theme.colors.accent.cyan, opacity: 0.15 }]} />
             </View>
@@ -106,8 +165,11 @@ export const LoginScreen = () => {
                                 placeholderTextColor={theme.colors.text.muted}
                                 value={password}
                                 onChangeText={setPassword}
-                                secureTextEntry
+                                secureTextEntry={!showPassword}
                             />
+                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color={theme.colors.text.secondary} />
+                            </TouchableOpacity>
                         </View>
 
                         <TouchableOpacity
@@ -142,6 +204,32 @@ export const LoginScreen = () => {
                                 <Text style={styles.footerLink}>Créer un compte</Text>
                             </TouchableOpacity>
                         </View>
+
+                        <View style={styles.dividerContainer}>
+                            <View style={styles.divider} />
+                            <Text style={styles.dividerText}>Ou continuer avec</Text>
+                            <View style={styles.divider} />
+                        </View>
+
+                        <View style={styles.socialContainer}>
+                            <TouchableOpacity
+                                style={styles.socialButton}
+                                onPress={() => promptGoogleAsync()}
+                                disabled={loading || !googleRequest}
+                            >
+                                <Ionicons name="logo-google" size={24} color="#EA4335" />
+                                <Text style={styles.socialButtonText}>Google</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.socialButton}
+                                onPress={() => promptGithubAsync()}
+                                disabled={loading || !githubRequest}
+                            >
+                                <Ionicons name="logo-github" size={24} color="#fff" />
+                                <Text style={styles.socialButtonText}>GitHub</Text>
+                            </TouchableOpacity>
+                        </View>
                     </Animated.View>
 
                 </ScrollView>
@@ -159,7 +247,6 @@ const styles = StyleSheet.create({
         height: 250,
         borderRadius: 125,
         opacity: 0.2,
-        filter: 'blur(60px)', // For platforms that support it, otherwise it's just a soft circle
     },
     scrollContent: {
         paddingHorizontal: 25,
@@ -171,8 +258,8 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
     logoImage: {
-        width: 450,
-        height: 250,
+        width: 150,
+        height: 100,
         marginBottom: 20,
     },
     tagline: {
@@ -242,6 +329,45 @@ const styles = StyleSheet.create({
     },
     footerText: { color: theme.colors.text.muted, fontSize: 14 },
     footerLink: { color: theme.colors.primary[400], fontSize: 14, fontWeight: '700' },
+    dividerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 25,
+    },
+    divider: {
+        flex: 1,
+        height: 1,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+    },
+    dividerText: {
+        color: theme.colors.text.muted,
+        paddingHorizontal: 15,
+        fontSize: 12,
+        fontWeight: '600',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    socialContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    socialButton: {
+        flex: 0.48,
+        height: 55,
+        borderRadius: 15,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+    },
+    socialButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
+        marginLeft: 10,
+    },
 });
 
 export default LoginScreen;

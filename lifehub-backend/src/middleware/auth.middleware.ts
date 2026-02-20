@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config/index.js';
 import { User } from '../modules/auth/user.model.js';
 import logger from '../config/logger.js';
+import redisCache from '../database/redis.js';
 
 export interface JwtPayload {
     userId: string;
@@ -32,6 +33,17 @@ export const authenticate = async (
         try {
             // Verify token
             const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload;
+
+            // Check session in Redis for ultra-solid security
+            const isSessionActive = await redisCache.get(`session:${decoded.userId}:${token.slice(-10)}`);
+
+            if (!isSessionActive) {
+                res.status(401).json({
+                    success: false,
+                    message: 'Session expired or invalidated',
+                });
+                return;
+            }
 
             // Check if user exists
             const user = await User.findById(decoded.userId);

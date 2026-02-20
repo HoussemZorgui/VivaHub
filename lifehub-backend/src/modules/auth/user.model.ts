@@ -22,6 +22,11 @@ export interface IUser extends Document {
     googleId?: string;
     facebookId?: string;
     appleId?: string;
+    githubId?: string;
+
+    // OTP
+    otpCode?: string;
+    otpExpires?: Date;
 
     // MFA
     mfaEnabled: boolean;
@@ -65,6 +70,7 @@ export interface IUser extends Document {
     comparePassword(candidatePassword: string): Promise<boolean>;
     generatePasswordResetToken(): string;
     generateEmailVerificationToken(): string;
+    generateOTP(): string;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -128,6 +134,15 @@ const UserSchema = new Schema<IUser>(
             sparse: true,
             index: true,
         },
+        githubId: {
+            type: String,
+            sparse: true,
+            index: true,
+        },
+
+        // OTP
+        otpCode: String,
+        otpExpires: Date,
 
         // MFA
         mfaEnabled: {
@@ -280,6 +295,14 @@ UserSchema.methods.generateEmailVerificationToken = function (): string {
     this.emailVerificationExpires = new Date(Date.now() + 86400000); // 24 hours
 
     return verificationToken;
+};
+
+// Generate 6-digit OTP
+UserSchema.methods.generateOTP = function (): string {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    this.otpCode = otp;
+    this.otpExpires = new Date(Date.now() + 600000); // 10 minutes
+    return otp;
 };
 
 export const User = mongoose.model<IUser>('User', UserSchema);

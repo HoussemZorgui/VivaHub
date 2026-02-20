@@ -78,9 +78,24 @@ export class AuthService {
         return api.post(`/auth/reset-password/${token}`, { password });
     }
 
-    // Verify email
-    async verifyEmail(token: string): Promise<{ success: boolean; message: string }> {
-        return api.get(`/auth/verify-email/${token}`);
+    // Verify email with OTP
+    async verifyOTP(email: string, otp: string): Promise<{ success: boolean; message: string }> {
+        return api.post('/auth/verify-otp', { email, otp });
+    }
+
+    // Resend OTP
+    async resendOTP(email: string): Promise<{ success: boolean; message: string }> {
+        return api.post('/auth/resend-otp', { email });
+    }
+
+    // Google Login
+    async googleLogin(idToken: string): Promise<AuthResponse> {
+        return api.post<AuthResponse>('/auth/google', { idToken });
+    }
+
+    // GitHub Login
+    async githubLogin(accessToken: string): Promise<AuthResponse> {
+        return api.post<AuthResponse>('/auth/github', { accessToken });
     }
 
     // Refresh token

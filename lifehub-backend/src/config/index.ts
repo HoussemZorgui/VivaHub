@@ -58,6 +58,11 @@ export const config = {
             keyId: process.env.APPLE_KEY_ID || '',
             privateKey: process.env.APPLE_PRIVATE_KEY || '',
         },
+        github: {
+            clientId: process.env.GITHUB_CLIENT_ID || '',
+            clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+            callbackURL: process.env.GITHUB_CALLBACK_URL || '',
+        },
     },
 
     // Firebase
