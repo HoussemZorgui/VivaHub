@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useTaskStore, Task, ReminderLeadTime } from '../../store/taskStore';
+import { useTaskStore, Task, SubTask, ReminderLeadTime } from '../../store/taskStore';
 import { notificationService, DEFAULT_LEAD_TIMES } from '../../services/notification.service';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { useNotificationNavStore } from '../../store/notificationNavStore';
@@ -63,7 +63,7 @@ export const TasksScreen = () => {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [leadTimes, setLeadTimes] = useState<ReminderLeadTime[]>(DEFAULT_LEAD_TIMES);
     const [newSubTask, setNewSubTask] = useState('');
-    const [localSubtasks, setLocalSubtasks] = useState<{ id: string; title: string; completed: boolean }[]>([]);
+    const [localSubtasks, setLocalSubtasks] = useState<SubTask[]>([]);
 
     useEffect(() => {
         notificationService.init();
