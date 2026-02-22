@@ -275,15 +275,13 @@ UserSchema.methods.comparePassword = async function (
     return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Generate password reset token
+// Generate password reset token (6-digit OTP for mobile)
 UserSchema.methods.generatePasswordResetToken = function (): string {
-    const resetToken = Math.random().toString(36).substring(2, 15) +
-        Math.random().toString(36).substring(2, 15);
-
-    this.passwordResetToken = resetToken;
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    this.passwordResetToken = otp;
     this.passwordResetExpires = new Date(Date.now() + 3600000); // 1 hour
 
-    return resetToken;
+    return otp;
 };
 
 // Generate email verification token

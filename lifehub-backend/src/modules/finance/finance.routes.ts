@@ -13,5 +13,6 @@ router.get('/coins/:id', authenticate, financeController.getCoinDetails.bind(fin
 router.get('/dashboard', authenticate, financeController.getDashboardData.bind(financeController));
 router.get('/transactions', authenticate, financeController.getTransactions.bind(financeController));
 router.post('/transactions', authenticate, financeController.addTransaction.bind(financeController));
+router.get('/rates', authenticate, financeController.getExchangeRates.bind(financeController));
 
 export default router;

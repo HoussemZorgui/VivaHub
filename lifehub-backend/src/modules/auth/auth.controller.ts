@@ -471,12 +471,20 @@ export class AuthController {
             const resetToken = user.generatePasswordResetToken();
             await user.save();
 
-            // TODO: Send password reset email
-            logger.info(`Password reset token for ${email}: ${resetToken}`);
+            // Send password reset email
+            const emailSent = await emailService.sendPasswordResetEmail(email, resetToken);
+
+            if (!emailSent) {
+                res.status(500).json({
+                    success: false,
+                    message: 'Failed to send password reset email',
+                });
+                return;
+            }
 
             res.status(200).json({
                 success: true,
-                message: 'Password reset email sent',
+                message: 'Password reset code sent to your email',
             });
         } catch (error: any) {
             logger.error('Forgot password error:', error);
@@ -488,13 +496,12 @@ export class AuthController {
         }
     }
 
-    // Reset password
     async resetPassword(req: Request, res: Response): Promise<void> {
         try {
-            const { token } = req.params;
-            const { password } = req.body;
+            const { email, token, password } = req.body;
 
             const user = await User.findOne({
+                email,
                 passwordResetToken: token,
                 passwordResetExpires: { $gt: new Date() },
             });
@@ -502,7 +509,7 @@ export class AuthController {
             if (!user) {
                 res.status(400).json({
                     success: false,
-                    message: 'Invalid or expired reset token',
+                    message: 'Invalid email or expired reset code',
                 });
                 return;
             }

@@ -52,8 +52,11 @@ export const HomeScreen = () => {
 
     const modules = [
         { title: 'Finance Pro', icon: 'trending-up', color: theme.colors.accent.emerald, desc: 'Analyses 3D', target: 'Finance' },
+        { title: 'Devises', icon: 'repeat', color: '#10b981', desc: 'Taux Mondiaux', target: 'CurrencyConverter' },
+        { title: 'Flux Média', icon: 'newspaper-outline', color: '#f59e0b', desc: 'RSS & Actualités', target: 'News' },
         { title: 'Tâches Sync', icon: 'list-outline', color: '#a855f7', desc: 'Gestion Élite', target: 'Tasks' },
         { title: 'Santé Plus', icon: 'fitness-outline', color: theme.colors.accent.rose, desc: 'Bio-Sync', target: 'Health' },
+        { title: 'Focus Flow', icon: 'timer-outline', color: '#ef4444', desc: 'Pomodoro Pro', target: 'Pomodoro' },
         { title: 'Neural AI', icon: 'sparkles-outline', color: theme.colors.primary[400], desc: 'Hugging Face GPT', target: 'AI' },
     ];
 

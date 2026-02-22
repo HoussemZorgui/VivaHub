@@ -74,8 +74,8 @@ export class AuthService {
     }
 
     // Reset password
-    async resetPassword(token: string, password: string): Promise<{ success: boolean; message: string }> {
-        return api.post(`/auth/reset-password/${token}`, { password });
+    async resetPassword(email: string, token: string, password: string): Promise<{ success: boolean; message: string }> {
+        return api.post('/auth/reset-password', { email, token, password });
     }
 
     // Verify email with OTP

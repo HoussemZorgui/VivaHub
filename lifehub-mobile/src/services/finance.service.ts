@@ -57,6 +57,19 @@ class FinanceService {
             throw error.response?.data || error.message;
         }
     }
+
+    async getExchangeRates(baseCurrency: string = 'USD') {
+        try {
+            const headers = await this.getAuthHeader();
+            const response = await axios.get(`${config.api.baseURL}/finance/rates`, {
+                params: { base: baseCurrency },
+                headers
+            });
+            return response.data;
+        } catch (error: any) {
+            throw error.response?.data || error.message;
+        }
+    }
 }
 
 export const financeService = new FinanceService();

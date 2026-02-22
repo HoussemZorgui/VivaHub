@@ -3,7 +3,7 @@ import { config } from '../config/index.js';
 import logger from '../config/logger.js';
 
 class EmailService {
-    private transporter;
+    private transporter: nodemailer.Transporter;
 
     constructor() {
         this.transporter = nodemailer.createTransport({
@@ -42,6 +42,7 @@ class EmailService {
             console.log(`[EmailService] Sending mail with options:`, { from: mailOptions.from, to: mailOptions.to });
             const info = await this.transporter.sendMail(mailOptions);
             console.log(`[EmailService] Mail sent successfully! MessageId: ${info.messageId}`);
+
             if (config.env === 'development') {
                 console.log(`[DEV ONLY] OTP for ${email}: ${otp}`);
             }
@@ -49,14 +50,45 @@ class EmailService {
         } catch (error: any) {
             console.error(`[EmailService] CRITICAL ERROR:`, error.message);
             logger.error('Failed to send OTP email:', error);
-            // Even if email fails, we log the OTP in dev for easy testing
             if (config.env === 'development') {
                 console.log(`[DEV ONLY] The OTP for ${email} is: ${otp}`);
-                logger.info(`[DEV] OTP for ${email}: ${otp}`);
             }
+            return false;
+        }
+    }
+
+    async sendPasswordResetEmail(email: string, token: string): Promise<boolean> {
+        try {
+            const mailOptions = {
+                from: `"VivaHub Security" <${config.email.from}>`,
+                to: email,
+                subject: 'Password Reset Request - VivaHub',
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background-color: #0c0c1e; color: #ffffff;">
+                        <h2 style="color: #6200ee; text-align: center;">Reset Your Password</h2>
+                        <p>We received a request to reset your VivaHub password. Please use the following code to reset your password:</p>
+                        <div style="background-color: #1a1a2e; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #6200ee; margin: 20px 0; border-radius: 5px; border: 1px solid #6200ee;">
+                            ${token}
+                        </div>
+                        <p>This code will expire in 1 hour.</p>
+                        <p>If you didn't request a password reset, please ignore this email and ensure your account is secure.</p>
+                        <hr style="border: none; border-top: 1px solid #333; margin: 20px 0;">
+                        <p style="font-size: 12px; color: #888; text-align: center;">© 2026 VivaHub. Secure Life Management.</p>
+                    </div>
+                `,
+            };
+
+            await this.transporter.sendMail(mailOptions);
+            if (config.env === 'development') {
+                console.log(`[DEV ONLY] Reset Token for ${email}: ${token}`);
+            }
+            return true;
+        } catch (error: any) {
+            logger.error('Failed to send password reset email:', error);
             return false;
         }
     }
 }
 
 export default new EmailService();
+

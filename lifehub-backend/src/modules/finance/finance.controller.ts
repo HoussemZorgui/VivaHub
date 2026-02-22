@@ -37,12 +37,35 @@ class FinanceController {
 
             const balance = totalIncome - totalExpense;
 
-            // Simple chart data aggregation (monthly) - basic implementation
-            // In a real app, this should be more robust with full date range handling
+            // Monthly aggregation for the last 6 months
+            const labels = [];
+            const incomeData = [];
+            const expenseData = [];
+            const now = new Date();
+
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const monthName = d.toLocaleString('fr-FR', { month: 'short' });
+                labels.push(monthName);
+
+                const monthTransactions = transactions.filter(t => {
+                    const td = new Date(t.date);
+                    return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+                });
+
+                incomeData.push(monthTransactions
+                    .filter(t => t.type === TransactionType.INCOME)
+                    .reduce((sum, t) => sum + t.amount, 0));
+
+                expenseData.push(monthTransactions
+                    .filter(t => t.type === TransactionType.EXPENSE)
+                    .reduce((sum, t) => sum + t.amount, 0));
+            }
+
             const chartData = {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], // Placeholder for now, ideally dynamic
-                income: [0, 0, 0, 0, 0, 0], // Placeholder
-                expenses: [0, 0, 0, 0, 0, 0] // Placeholder
+                labels,
+                income: incomeData,
+                expenses: expenseData
             };
 
             // Group expenses by category for Pie Chart
@@ -56,7 +79,7 @@ class FinanceController {
             const pieData = Object.entries(expensesByCategory).map(([name, population]) => ({
                 name,
                 population,
-                color: `#${Math.floor(Math.random() * 16777215).toString(16)}`, // Random color for now
+                color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
                 legendFontColor: '#7F7F7F',
                 legendFontSize: 12
             }));
@@ -67,7 +90,7 @@ class FinanceController {
                     balance,
                     income: totalIncome,
                     expense: totalExpense,
-                    transactions: transactions.slice(0, 5), // Recent 5
+                    transactions: transactions.slice(0, 10), // Increased to 10
                     chartData,
                     pieData
                 }
@@ -132,6 +155,24 @@ class FinanceController {
             res.status(500).json({
                 success: false,
                 message: `Failed to fetch details for ${req.params.id}`,
+                error: error.message,
+            });
+        }
+    }
+
+    async getExchangeRates(req: Request, res: Response): Promise<void> {
+        try {
+            const { base } = req.query;
+            const rates = await financeService.getExchangeRates((base as string) || 'USD');
+            res.status(200).json({
+                success: true,
+                data: rates,
+            });
+        } catch (error: any) {
+            logger.error('Finance Exchange Rates Error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to fetch exchange rates',
                 error: error.message,
             });
         }

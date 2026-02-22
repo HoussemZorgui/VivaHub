@@ -151,6 +151,29 @@ export const HealthScreen = () => {
                     </View>
                 </Animated.View>
 
+                <Animated.View entering={FadeInDown.delay(700)} style={styles.section}>
+                    <Text style={styles.sectionTitle}>Outils Bio-Analyse</Text>
+                    <View style={styles.toolsRow}>
+                        <TouchableOpacity
+                            style={[styles.toolCard, { backgroundColor: '#1e3a8a' }]}
+                            onPress={() => navigation.navigate('HealthTracker')}
+                        >
+                            <Ionicons name="water" size={32} color="#fff" />
+                            <Text style={styles.toolTitle}>Hydratation</Text>
+                            <Text style={styles.toolVal}>8 Verres/j</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.toolCard, { backgroundColor: '#881337' }]}
+                            onPress={() => navigation.navigate('HealthTracker')}
+                        >
+                            <Ionicons name="body" size={32} color="#fff" />
+                            <Text style={styles.toolTitle}>Calcul d'IMC</Text>
+                            <Text style={styles.toolVal}>Analyse Bio</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+
                 <Animated.View entering={FadeInDown.delay(800)} style={styles.section}>
                     <Text style={styles.sectionTitle}>Analyse du Sommeil</Text>
                     <View style={styles.sleepCard}>
@@ -312,5 +335,17 @@ const styles = StyleSheet.create({
     foodImage: { width: 60, height: 60, borderRadius: 15, marginRight: 15 },
     foodName: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 5, textTransform: 'capitalize' },
     macroRow: { flexDirection: 'row', gap: 10 },
-    macroText: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600' }
+    macroText: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600' },
+    toolsRow: { flexDirection: 'row', gap: 15 },
+    toolCard: {
+        flex: 1,
+        borderRadius: 25,
+        padding: 20,
+        height: 140,
+        justifyContent: 'center',
+        alignItems: 'center',
+        ...theme.shadows.premium,
+    },
+    toolTitle: { color: '#fff', fontSize: 14, fontWeight: '700', marginTop: 10 },
+    toolVal: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600', marginTop: 2 }
 });

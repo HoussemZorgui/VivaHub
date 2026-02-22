@@ -18,6 +18,7 @@ import aiRoutes from './modules/ai/ai.routes.js';
 import financeRoutes from './modules/finance/finance.routes.js';
 import weatherRoutes from './modules/weather/weather.routes.js';
 import healthRoutes from './modules/health/health.routes.js';
+import newsRoutes from './modules/media/news.routes.js';
 
 // ...
 
@@ -95,6 +96,7 @@ export class App {
         this.app.use('/api/finance', financeRoutes);
         this.app.use('/api/weather', weatherRoutes);
         this.app.use('/api/health', healthRoutes);
+        this.app.use('/api/news', newsRoutes);
         // this.app.use('/api/media', mediaRoutes);
         // this.app.use('/api/gamification', gamificationRoutes);
 

@@ -61,6 +61,8 @@ export const schemas = {
     }),
 
     resetPassword: Joi.object({
+        email: Joi.string().email().required(),
+        token: Joi.string().length(6).required(),
         password: Joi.string().min(8).required(),
     }),
 

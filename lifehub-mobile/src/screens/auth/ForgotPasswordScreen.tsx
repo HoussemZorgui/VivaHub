@@ -8,6 +8,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,21 +17,32 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { theme } from '../../theme';
 import { useToastStore } from '../../store/toastStore';
+import { authService } from '../../services/auth.service';
 
 export const ForgotPasswordScreen = () => {
     const navigation = useNavigation<any>();
     const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
     const showToast = useToastStore(state => state.showToast);
 
-    const handleResetRequest = () => {
+    const handleResetRequest = async () => {
         if (!email || !email.includes('@')) {
             showToast('Veuillez entrer un email valide.', 'warning');
             return;
         }
 
-        // Static simulation
-        showToast('Code de réinitialisation envoyé !', 'success');
-        setTimeout(() => navigation.navigate('EmailVerification', { email, type: 'reset' }), 1000);
+        try {
+            setLoading(true);
+            const response = await authService.forgotPassword(email);
+            if (response.success) {
+                showToast('Code de réinitialisation envoyé !', 'success');
+                navigation.navigate('ResetPassword', { email });
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Impossible d\'envoyer le code.', 'error');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -49,14 +61,14 @@ export const ForgotPasswordScreen = () => {
                     <Ionicons name="arrow-back" size={24} color="#fff" />
                 </TouchableOpacity>
 
-                <ScrollView contentContainerStyle={styles.scrollContent}>
+                <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                     <Animated.View entering={FadeInUp.delay(200)} style={styles.header}>
                         <View style={styles.iconCircle}>
                             <Ionicons name="key-outline" size={40} color={theme.colors.primary[400]} />
                         </View>
                         <Text style={styles.title}>Mot de passe oublié</Text>
                         <Text style={styles.subtitle}>
-                            Entrez votre adresse email pour recevoir un code de réinitialisation de votre mot de passe.
+                            Entrez votre adresse email pour recevoir un code de réinitialisation de 6 chiffres.
                         </Text>
                     </Animated.View>
 
@@ -67,7 +79,7 @@ export const ForgotPasswordScreen = () => {
                                 <Ionicons name="mail-outline" size={20} color={theme.colors.text.secondary} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="jean@example.com"
+                                    placeholder="exemple@vifahub.com"
                                     placeholderTextColor={theme.colors.text.muted}
                                     value={email}
                                     onChangeText={setEmail}
@@ -77,14 +89,22 @@ export const ForgotPasswordScreen = () => {
                             </View>
                         </View>
 
-                        <TouchableOpacity style={styles.button} onPress={handleResetRequest}>
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={handleResetRequest}
+                            disabled={loading}
+                        >
                             <LinearGradient
                                 colors={theme.colors.gradients.premium as any}
                                 start={{ x: 0, y: 0 }}
                                 end={{ x: 1, y: 0 }}
                                 style={styles.btnGradient}
                             >
-                                <Text style={styles.buttonText}>Envoyer le code</Text>
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={styles.buttonText}>Envoyer le code</Text>
+                                )}
                             </LinearGradient>
                         </TouchableOpacity>
                     </Animated.View>
@@ -170,8 +190,8 @@ const styles = StyleSheet.create({
         fontSize: 15,
     },
     button: {
-        height: 55,
-        borderRadius: 15,
+        height: 60,
+        borderRadius: 18,
         overflow: 'hidden',
         ...theme.shadows.premium,
     },
@@ -186,3 +206,5 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 });
+
+export default ForgotPasswordScreen;

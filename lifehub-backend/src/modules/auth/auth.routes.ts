@@ -21,7 +21,7 @@ router.post('/github', authLimiter, validate(schemas.githubLogin), authControlle
 
 router.post('/forgot-password', passwordResetLimiter, validate(schemas.forgotPassword), authController.forgotPassword.bind(authController));
 
-router.post('/reset-password/:token', validate(schemas.resetPassword), authController.resetPassword.bind(authController));
+router.post('/reset-password', validate(schemas.resetPassword), authController.resetPassword.bind(authController));
 
 // Protected routes
 router.get('/profile', authenticate, authController.getProfile.bind(authController) as any);

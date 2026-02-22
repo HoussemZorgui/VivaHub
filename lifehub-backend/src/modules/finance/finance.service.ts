@@ -66,6 +66,44 @@ class FinanceService {
             throw new Error(`Failed to fetch details for ${coinId}`);
         }
     }
+
+    /**
+     * Get currency exchange rates using ExchangeRate-API (Free Public Endpoint)
+     * No API key required for this specific endpoint.
+     */
+    async getExchangeRates(baseCurrency: string = 'USD') {
+        try {
+            const response = await axios.get(`https://open.er-api.com/v6/latest/${baseCurrency.toUpperCase()}`);
+            if (response.data && response.data.result === 'success') {
+                return response.data;
+            }
+            throw new Error('Failed to fetch exchange rates');
+        } catch (error: any) {
+            logger.error(`ExchangeRate API Error (${baseCurrency}):`, error.message);
+            // Fallback mock data if API fails
+            return this.getMockExchangeRates(baseCurrency);
+        }
+    }
+
+    private getMockExchangeRates(base: string) {
+        return {
+            result: 'success',
+            base_code: base.toUpperCase(),
+            rates: {
+                USD: 1,
+                EUR: 0.92,
+                GBP: 0.79,
+                TND: 3.12,
+                SAR: 3.75,
+                AED: 3.67,
+                JPY: 150.23,
+                CAD: 1.35,
+                AUD: 1.52,
+                CHF: 0.88
+            },
+            time_last_update_utc: new Date().toUTCString()
+        };
+    }
 }
 
 export default new FinanceService();
